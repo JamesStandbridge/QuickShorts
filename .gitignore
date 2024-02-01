@@ -2,3 +2,7 @@
 env
 /env
 .env
+
+content-node
+
+__pycache__

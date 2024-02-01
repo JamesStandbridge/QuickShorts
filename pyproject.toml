@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "quick-shorts"
+version = "0.1.4"
+description = "A Python module to automatically generate shorts like TikTok."
+authors = ["James Standbridge <james.standbridge.git@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+beautifulsoup4 = "^4.12.3"
+moviepy = "^1.0.3"
+openai = "^1.10.0"
+python-dotenv = "^1.0.1"
+requests = "^2.31.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,66 @@
+import json
+from llm.OpenAIChat import OpenAIChat
+from moviepy.editor import ImageSequenceClip, TextClip, concatenate_videoclips
+import os
+
+model = OpenAIChat()
+
+
+keywords = ['personal development', 'motivation', 'achievement']
+current_trends = ['#TheVoiceKids', '#Joblife', 'vingegaard', 'Pogacar', 'Barbie', 'Slimane', 'Alexandre Adler', 'Armstrong', 'DNCG', 'Textor', '#KCWIN', '#TDFF2023', 'Cyprien', 'Pogi', 'Van Aert']
+
+prompt = ("You have the pen of a great modern writer and fully understand what the audience on platforms "
+          "like TikTok expects in terms of addictive content. I want you to generate a series of quotes for "
+          "a TikTok short that align with the following current trends: " + str(current_trends) + " and adhere to "
+          "the following keywords: " + str(keywords) + ". I want each quote to be unique and generate 5 quotes, "
+          "each no longer than a sentence, and send them to me in JSON format following this example format : [{\"us_quote\": \"quote translated in english\", \"arab_quote\": \"quote translated in arab\"}]. Give me only the json output, nothing else, no message.")
+
+messages = [ 
+    {'role': 'user', 'content': prompt}
+]   
+
+response = model.query(messages, temperature=0.5, model="gpt-4")
+
+# Votre tableau de citations
+print(response.content)
+quotes = json.loads(response.content)
+
+print(quotes)
+
+# Paramètres de la vidéo
+font = 'Arial-Bold'  # Choisir une police adaptée
+fontsize = 40  # Taille de la police initiale
+color = 'white'  # Couleur du texte
+duration_per_quote = 5  # Durée de chaque slide en secondes
+max_width = 800  # Largeur maximale du texte
+
+# Création d'un dossier pour stocker les images temporaires
+if not os.path.exists('temp_images'):
+    os.makedirs('temp_images')
+
+# Génération des slides
+clips = []
+for i, quote in enumerate(quotes):
+    text = quote['us_quote'] + "\n\n" + quote['arab_quote']
+    
+    # Création d'un TextClip avec retour à la ligne automatique
+    text_clip = TextClip(text, fontsize=fontsize, color=color, font=font, size=(max_width, None), method='caption')
+    text_clip = text_clip.set_duration(duration_per_quote)
+    
+    # Ajustement de la taille de la police si nécessaire
+    while text_clip.size[1] > 600:  # 600 est la hauteur maximale souhaitée
+        fontsize -= 1
+        text_clip = TextClip(text, fontsize=fontsize, color=color, font=font, size=(max_width, None), method='caption')
+        text_clip = text_clip.set_duration(duration_per_quote)
+
+    text_clip.save_frame(f"temp_images/slide_{i}.png")  # Sauvegarde de l'image
+    clips.append(text_clip)
+
+# Création de la vidéo finale
+final_clip = concatenate_videoclips(clips, method="compose")
+final_clip.write_videofile("output_video.mp4", fps=24)
+
+# Nettoyage des images temporaires
+for i in range(len(quotes)):
+    os.remove(f"temp_images/slide_{i}.png")
+os.rmdir('temp_images')
